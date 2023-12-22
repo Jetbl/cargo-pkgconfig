@@ -21,6 +21,8 @@ enum LinkerFlavor {
     MSVC,
     /// GNU Compiler Collection
     GCC,
+    /// Rust
+    RUST,
 }
 
 fn main() {
@@ -51,7 +53,8 @@ fn main() {
                     .help("flavor of linker command-line flags")
                     .long("flavor")
                     .takes_value(true)
-                    .possible_values(["msvc", "gcc"])
+                    .possible_values(["msvc", "gcc", "rust"])
+                    .default_value("rust")
                     .required(false),
                 Arg::new("cargocmd")
                     .takes_value(true)
@@ -81,6 +84,7 @@ fn main() {
     let flavor = match matches.value_of("flavor") {
         Some("msvc") => LinkerFlavor::MSVC,
         Some("gcc") => LinkerFlavor::GCC,
+        Some("rust") => LinkerFlavor::RUST,
         _ => {
             // HACK: Use OS to extract style.
             // Really should use the target's compiler triple instead.
@@ -181,6 +185,9 @@ fn main() {
                     DumpType::Archiver => println!("{filepath}/{filename}"),
                     DumpType::Linker => println!("-L{filepath} -l{name}"),
                 },
+                LinkerFlavor::RUST => {
+                    println!("-L{filepath}/deps --extern {name}={filepath}/{filename}")
+                }
             }
         }
     } else {
